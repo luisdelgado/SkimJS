@@ -34,7 +34,7 @@ evalStmt env (VarDeclStmt (decl:ds)) =
     varDecl env decl >> evalStmt env (VarDeclStmt ds)
 evalStmt env (ExprStmt expr) = evalExpr env expr
 
--- If
+-- If e else
 evalStmt env (IfStmt expr ifBlock elseBlock) = do
    ret <- evalExpr env expr
    case ret of
@@ -43,6 +43,14 @@ evalStmt env (BlockStmt []) = return Nil
 evalStmt env (BlockStmt (x:xs)) = do
     evalStmt env x
     evalStmt env (BlockStmt xs)
+
+-- If
+-- evalStmt :: StateT -> Expression -> Statement -> StateTransformer Value
+evalStmt env (IfSingleStmt expr ifBlock) = do
+    ret <- evalExpr env expr
+    case ret of 
+        err@(Error s) -> return err
+        Bool b ->if b == True then evalStmt env ifBlock else return Nil
 
 -- Do not touch this one :)
 evaluate :: StateT -> [Statement] -> StateTransformer Value
