@@ -34,6 +34,16 @@ evalStmt env (VarDeclStmt (decl:ds)) =
     varDecl env decl >> evalStmt env (VarDeclStmt ds)
 evalStmt env (ExprStmt expr) = evalExpr env expr
 
+-- If
+evalStmt env (IfStmt expr ifBlock elseBlock) = do
+   ret <- evalExpr env expr
+   case ret of
+       (Bool b) -> if b then evalStmt env ifBlock else evalStmt env elseBlock
+evalStmt env (BlockStmt []) = return Nil
+evalStmt env (BlockStmt (x:xs)) = do
+    evalStmt env x
+    evalStmt env (BlockStmt xs)
+
 -- Do not touch this one :)
 evaluate :: StateT -> [Statement] -> StateTransformer Value
 evaluate env [] = return Nil
