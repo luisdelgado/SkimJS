@@ -50,7 +50,7 @@ evalStmt env (IfSingleStmt expr ifBlock) = do
     ret <- evalExpr env expr
     case ret of 
         err@(Error s) -> return err
-        Bool b ->if b == True then evalStmt env ifBlock else return Nil
+        Bool b ->if b == True then evalStmt env ifBlock else evalStmt env EmptyStmt
 
 -- Do not touch this one :)
 evaluate :: StateT -> [Statement] -> StateTransformer Value
