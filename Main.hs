@@ -52,34 +52,41 @@ evalStmt env (IfSingleStmt expr ifBlock) = do
         err@(Error s) -> return err
         Bool b ->if b == True then evalStmt env ifBlock else evalStmt env EmptyStmt
 
------------------- For ----------------------------
+------------------ For ----------------------------------------------------------
+evalStmt env (ForStmt ini exp increments body) = ST $ \state -> 
+	let 
+		(ST a) = evalStmt env EmptyStmt
+		(v,state1) = a state
+		(ST b) = do
+			evalForInit env ini
+			case exp of 
+				(Just a) -> do 
+					ret <- evalExpr env a
+					case ret of
+						(Bool b) -> if (b == True) then do
+										evalStmt env body
+										case increments of 
+											(Just i) -> evalExpr env i
+											(Nothing)-> evalStmt env EmptyStmt
+										evalStmt env (ForStmt NoInit exp increments body)
+									else evalStmt env EmptyStmt
+				(Nothing) -> do
+					evalStmt env body
+					case increments of
+						(Just i) -> evalExpr env i
+						(Nothing)-> evalStmt env EmptyStmt
+					evalStmt env (ForStmt NoInit exp increments body)
+		(result,locVar) = b state1
+		varGlob = intersection locVar state
+	in (result,varGlob)
+	
+------------------ case ForInit ---------------------------------------------------
 
-evalStmt env (ForStmt ini exp increments body) = do
-	evalForInit env ini
-	case exp of 
-		(Just a) -> do 
-			ret <- evalExpr env a
-			case ret of
-				(Bool b) -> if (b == True) then do
-								evalStmt env body
-								case increments of 
-									(Just i) -> evalExpr env i
-									(Nothing)-> evalStmt env EmptyStmt
-								evalStmt env (ForStmt NoInit exp increments body)
-							else evalStmt env EmptyStmt
-		(Nothing) -> do
-			evalStmt env body
-			case increments of
-				(Just i) -> evalExpr env i
-				(Nothing)-> evalStmt env EmptyStmt
-			evalStmt env (ForStmt NoInit exp increments body)
-			
------------------- case ForInit -------------------
-               
 evalForInit env (NoInit) = evalStmt env EmptyStmt
 evalForInit env (VarInit var) = (evalStmt env (VarDeclStmt var))	
 evalForInit env (ExprInit exp) = evalExpr env exp 
 
+-------------------------------------------------------------------------------------
 -- Do not touch this one :)
 evaluate :: StateT -> [Statement] -> StateTransformer Value
 evaluate env [] = return Nil
