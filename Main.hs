@@ -36,21 +36,44 @@ evalStmt env (ExprStmt expr) = evalExpr env expr
 
 -- If e else
 evalStmt env (IfStmt expr ifBlock elseBlock) = do
-   ret <- evalExpr env expr
-   case ret of
-       (Bool b) -> if b then evalStmt env ifBlock else evalStmt env elseBlock
+	ret <- evalExpr env expr
+	case ret of
+		(Bool b) -> if b then ST $ \state -> 
+			let 
+				(ST a) = evalStmt env EmptyStmt
+				(v,state1) = a state
+				(ST b) = do
+					evalStmt env ifBlock 
+				(result,locVar) = b state1
+				varGlob = intersection locVar state
+			in (result,varGlob)
+		else ST $ \state -> 
+			let 
+				(ST a) = evalStmt env EmptyStmt
+				(v,state1) = a state
+				(ST b) = do
+					evalStmt env elseBlock
+				(result,locVar) = b state1
+				varGlob = intersection locVar state
+			in (result,varGlob)
 evalStmt env (BlockStmt []) = return Nil
 evalStmt env (BlockStmt (x:xs)) = do
-    evalStmt env x
-    evalStmt env (BlockStmt xs)
-
+	evalStmt env x
+	evalStmt env (BlockStmt xs)	
+	
 -- If
--- evalStmt :: StateT -> Expression -> Statement -> StateTransformer Value
-evalStmt env (IfSingleStmt expr ifBlock) = do
-    ret <- evalExpr env expr
-    case ret of 
-        err@(Error s) -> return err
-        Bool b ->if b == True then evalStmt env ifBlock else evalStmt env EmptyStmt
+evalStmt env (IfSingleStmt expr ifBlock) = ST $ \state -> 
+	let 
+		(ST a) = evalStmt env EmptyStmt
+		(v,state1) = a state
+		(ST b) = do
+			ret <- evalExpr env expr
+			case ret of 
+				err@(Error s) -> return err
+				Bool b ->if b == True then evalStmt env ifBlock else evalStmt env EmptyStmt
+		(result,locVar) = b state1
+		varGlob = intersection locVar state
+	in (result,varGlob)
 
 ------------------ For ----------------------------------------------------------
 evalStmt env (ForStmt ini exp increments body) = ST $ \state -> 
