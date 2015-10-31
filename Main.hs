@@ -34,7 +34,7 @@ evalStmt env (VarDeclStmt (decl:ds)) =
     varDecl env decl >> evalStmt env (VarDeclStmt ds)
 evalStmt env (ExprStmt expr) = evalExpr env expr
 
--- If e else
+------------------------------ If e else ---------------------------------------------
 evalStmt env (IfStmt expr ifBlock elseBlock) = do
 	ret <- evalExpr env expr
 	case ret of
@@ -61,7 +61,7 @@ evalStmt env (BlockStmt (x:xs)) = do
 	evalStmt env x
 	evalStmt env (BlockStmt xs)	
 	
--- If
+--------------------- If -----------------------------------------------------------
 evalStmt env (IfSingleStmt expr ifBlock) = ST $ \state -> 
 	let 
 		(ST a) = evalStmt env EmptyStmt
@@ -102,6 +102,23 @@ evalStmt env (ForStmt ini exp increments body) = ST $ \state ->
 		(result,locVar) = b state1
 		varGlob = intersection locVar state
 	in (result,varGlob)
+
+------------------------------------------------------------------------------------
+----------------------------------Break----------------------------------------------
+
+--evalstmt env (BreakStmt id) = ST $ \state ->
+ --   let 
+ --       (ST a) = evalStmt env EmptyStmt
+--        (v,state1) = a state
+ --       (ST b) = do
+ --           case id of
+ --               (Just i) -> do
+ --           (result,locVar) = b state1
+  --          varGlob = intersection locVar state
+  --  in (result,varGlob)
+  --              (Nothing) -> Nothing    
+
+-------------------------------------------------------------------------------------
 	
 ------------------ case ForInit ---------------------------------------------------
 
