@@ -21,7 +21,9 @@ evalExpr env (AssignExpr OpAssign (LVar var) expr) = do
     v <- stateLookup env var
     case v of
         -- Variable not defined :(
-        (Error _) -> return $ Error $ (show var) ++ " not defined"
+        (Error _) -> do
+            e <- evalExpr env expr
+            setVar var e
         -- Variable defined, let's set its value
         _ -> do
             e <- evalExpr env expr
@@ -38,70 +40,40 @@ evalStmt env (ExprStmt expr) = evalExpr env expr
 evalStmt env (IfStmt expr ifBlock elseBlock) = do
 	ret <- evalExpr env expr
 	case ret of
-		(Bool b) -> if b then ST $ \state -> 
-			let 
-				(ST a) = evalStmt env EmptyStmt
-				(v,state1) = a state
-				(ST b) = do
-					evalStmt env ifBlock 
-				(result,locVar) = b state1
-				varGlob = intersection locVar state
-			in (result,varGlob)
-		else ST $ \state -> 
-			let 
-				(ST a) = evalStmt env EmptyStmt
-				(v,state1) = a state
-				(ST b) = do
-					evalStmt env elseBlock
-				(result,locVar) = b state1
-				varGlob = intersection locVar state
-			in (result,varGlob)
+		(Bool b) -> if b then evalStmt env ifBlock else evalStmt env elseBlock
+
 evalStmt env (BlockStmt []) = return Nil
 evalStmt env (BlockStmt (x:xs)) = do
 	evalStmt env x
 	evalStmt env (BlockStmt xs)	
 	
 --------------------- If -----------------------------------------------------------
-evalStmt env (IfSingleStmt expr ifBlock) = ST $ \state -> 
-	let 
-		(ST a) = evalStmt env EmptyStmt
-		(v,state1) = a state
-		(ST b) = do
-			ret <- evalExpr env expr
-			case ret of 
-				err@(Error s) -> return err
-				Bool b ->if b == True then evalStmt env ifBlock else evalStmt env EmptyStmt
-		(result,locVar) = b state1
-		varGlob = intersection locVar state
-	in (result,varGlob)
+evalStmt env (IfSingleStmt expr ifBlock) = do
+	ret <- evalExpr env expr
+	case ret of 
+		err@(Error s) -> return err
+		Bool b ->if b == True then evalStmt env ifBlock else evalStmt env EmptyStmt
 
 ------------------ For ----------------------------------------------------------
-evalStmt env (ForStmt ini exp increments body) = ST $ \state -> 
-	let 
-		(ST a) = evalStmt env EmptyStmt
-		(v,state1) = a state
-		(ST b) = do
-			evalForInit env ini
-			case exp of 
-				(Just a) -> do 
-					ret <- evalExpr env a
-					case ret of
-						(Bool b) -> if (b == True) then do
-										evalStmt env body
-										case increments of 
-											(Just i) -> evalExpr env i
-											(Nothing)-> evalStmt env EmptyStmt
-										evalStmt env (ForStmt NoInit exp increments body)
-									else evalStmt env EmptyStmt
-				(Nothing) -> do
-					evalStmt env body
-					case increments of
-						(Just i) -> evalExpr env i
-						(Nothing)-> evalStmt env EmptyStmt
-					evalStmt env (ForStmt NoInit exp increments body)
-		(result,locVar) = b state1
-		varGlob = intersection locVar state
-	in (result,varGlob)
+evalStmt env (ForStmt ini exp increments body) = do
+	evalForInit env ini
+	case exp of 
+		(Just a) -> do 
+			ret <- evalExpr env a
+			case ret of
+				(Bool b) -> if (b == True) then do
+								evalStmt env body
+								case increments of 
+									(Just i) -> evalExpr env i
+									(Nothing)-> evalStmt env EmptyStmt
+								evalStmt env (ForStmt NoInit exp increments body)
+							else evalStmt env EmptyStmt
+		(Nothing) -> do
+			evalStmt env body
+			case increments of
+				(Just i) -> evalExpr env i
+				(Nothing)-> evalStmt env EmptyStmt
+			evalStmt env (ForStmt NoInit exp increments body)
 
 ------------------------------------------------------------------------------------
 ----------------------------------Break----------------------------------------------
