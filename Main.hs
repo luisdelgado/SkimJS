@@ -42,10 +42,15 @@ evalStmt env (IfStmt expr ifBlock elseBlock) = do
 	case ret of
 		(Bool b) -> if b then evalStmt env ifBlock else evalStmt env elseBlock
 
+-------------------------------- blockStmt with break-------------------------------------------
+
 evalStmt env (BlockStmt []) = return Nil
 evalStmt env (BlockStmt (x:xs)) = do
-	evalStmt env x
-	evalStmt env (BlockStmt xs)	
+    case x of
+        (BreakStmt Nothing) -> return Nil --- Break Function
+        _ -> do
+            evalStmt env x
+            evalStmt env (BlockStmt xs)
 	
 --------------------- If -----------------------------------------------------------
 evalStmt env (IfSingleStmt expr ifBlock) = do
