@@ -1,5 +1,13 @@
-var x = 0, y = 10;
-if (x<y) {
- y = 2 + y;
+var x = 0;
+if (x == 0) {
+	//break;
+	p = 90;
 }
-x = 0;
+for (var i = 1; i < 7; i = i+1) {
+	j = 7;
+	//break;
+	o = 80;
+}
+function myFunction(i) {
+	u = 0;
+}
