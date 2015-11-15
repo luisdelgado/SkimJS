@@ -5,7 +5,7 @@ if (x == 0) {
 }
 for (var i = 1; i < 7; i = i+1) {
 	j = 7;
-	//break;
+	break;
 	o = 80;
 }
 function myFunction(i) {

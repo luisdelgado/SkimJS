@@ -38,47 +38,52 @@ evalStmt env (ExprStmt expr) = evalExpr env expr
 
 ------------------------------ If e else ---------------------------------------------
 evalStmt env (IfStmt expr ifBlock elseBlock) = do
-	ret <- evalExpr env expr
-	case ret of
-		(Bool b) -> if b then evalStmt env ifBlock else evalStmt env elseBlock
+    ret <- evalExpr env expr
+    case ret of
+        (Bool b) -> if b then evalStmt env ifBlock else evalStmt env elseBlock
 
 -------------------------------- blockStmt with break-------------------------------------------
 
 evalStmt env (BlockStmt []) = return Nil
 evalStmt env (BlockStmt (x:xs)) = do
     case x of
-        (BreakStmt Nothing) -> return Nil --- Break Function
+        (BreakStmt Nothing) -> return Break --- Break Function
         _ -> do
             evalStmt env x
             evalStmt env (BlockStmt xs)
-	
+    
 --------------------- If -----------------------------------------------------------
 evalStmt env (IfSingleStmt expr ifBlock) = do
-	ret <- evalExpr env expr
-	case ret of 
-		err@(Error s) -> return err
-		Bool b ->if b == True then evalStmt env ifBlock else evalStmt env EmptyStmt
+    ret <- evalExpr env expr
+    case ret of 
+        err@(Error s) -> return err
+        Bool b ->if b == True then evalStmt env ifBlock else evalStmt env EmptyStmt
 
 ------------------ For ----------------------------------------------------------
 evalStmt env (ForStmt ini exp increments body) = do
-	evalForInit env ini
-	case exp of 
-		(Just a) -> do 
-			ret <- evalExpr env a
-			case ret of
-				(Bool b) -> if (b == True) then do
-								evalStmt env body
-								case increments of 
-									(Just i) -> evalExpr env i
-									(Nothing)-> evalStmt env EmptyStmt
-								evalStmt env (ForStmt NoInit exp increments body)
-							else evalStmt env EmptyStmt
-		(Nothing) -> do
-			evalStmt env body
-			case increments of
-				(Just i) -> evalExpr env i
-				(Nothing)-> evalStmt env EmptyStmt
-			evalStmt env (ForStmt NoInit exp increments body)
+    evalForInit env ini
+    case exp of 
+        (Just a) -> do 
+            ret <- evalExpr env a
+            case ret of
+                (Bool b) -> if (b == True) then do
+                                domingo <- evalStmt env body
+                                case domingo of
+                                    (Break) -> return Nil
+                                    _ -> case increments of 
+                                            (Just i) -> do
+                                                evalExpr env i
+                                                evalStmt env (ForStmt NoInit exp increments body)
+                                            (Nothing) -> do
+                                                evalStmt env EmptyStmt
+                                                evalStmt env (ForStmt NoInit exp increments body)
+                            else evalStmt env EmptyStmt
+        (Nothing) -> do
+            evalStmt env body
+            case increments of
+                (Just i) -> evalExpr env i
+                (Nothing)-> evalStmt env EmptyStmt
+            evalStmt env (ForStmt NoInit exp increments body)
 
 evalStmt env (FunctionStmt ini [arg] [body]) = do
     evalFunctionId env ini
@@ -88,7 +93,7 @@ evalStmt env (FunctionStmt ini [arg] [body]) = do
 --        (ReturnStmt a) -> evalStmt env a
 
 evalFunctionId env (Id ini) = setVar ini Nil
---evalFunctionArg env ([Id] [arg]) = return Nil
+--evalFunctionArg env ([Id] arg) = return arg
 --evalFunctionArg env (Id arg) =        
 ------------------------------------------------------------------------------------
 ----------------------------------Break----------------------------------------------
@@ -106,11 +111,11 @@ evalFunctionId env (Id ini) = setVar ini Nil
   --              (Nothing) -> Nothing    
 
 -------------------------------------------------------------------------------------
-	
+    
 ------------------ case ForInit ---------------------------------------------------
 
 evalForInit env (NoInit) = evalStmt env EmptyStmt
-evalForInit env (VarInit var) = (evalStmt env (VarDeclStmt var))	
+evalForInit env (VarInit var) = (evalStmt env (VarDeclStmt var))    
 evalForInit env (ExprInit exp) = evalExpr env exp 
 
 -------------------------------------------------------------------------------------
