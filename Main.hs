@@ -9,6 +9,9 @@ import Value
 --
 -- Evaluate functions
 --
+    
+--evalExpression:: StateT -> [Expression] -> StateTransformer Value
+evalExpression env (exp:l) = evalExpr env exp
 
 evalExpr :: StateT -> Expression -> StateTransformer Value
 evalExpr env (VarRef (Id id)) = stateLookup env id
@@ -28,6 +31,10 @@ evalExpr env (AssignExpr OpAssign (LVar var) expr) = do
         _ -> do
             e <- evalExpr env expr
             setVar var e
+--Chamando função
+evalExpr env (CallExpr exp (expr:l)) = do
+    evalExpr env exp
+    evalExpr env expr >> evalExpression env l
 
 evalStmt :: StateT -> Statement -> StateTransformer Value
 evalStmt env EmptyStmt = return Nil
@@ -41,24 +48,20 @@ evalStmt env (IfStmt expr ifBlock elseBlock) = do
     ret <- evalExpr env expr
     case ret of
         (Bool b) -> if b then evalStmt env ifBlock else evalStmt env elseBlock
-
 -------------------------------- blockStmt with break-------------------------------------------
-
 evalStmt env (BlockStmt []) = return Nil
 evalStmt env (BlockStmt (x:xs)) = do
     case x of
         (BreakStmt Nothing) -> return Break --- Break Function
         _ -> do
             evalStmt env x
-            evalStmt env (BlockStmt xs)
-    
+            evalStmt env (BlockStmt xs)             
 --------------------- If -----------------------------------------------------------
 evalStmt env (IfSingleStmt expr ifBlock) = do
     ret <- evalExpr env expr
     case ret of 
         err@(Error s) -> return err
-        Bool b ->if b == True then evalStmt env ifBlock else evalStmt env EmptyStmt
-
+        Bool b ->if b == True then evalStmt env ifBlock else evalStmt env EmptyStmt           
 ------------------ For ----------------------------------------------------------
 evalStmt env (ForStmt ini exp increments body) = do
     evalForInit env ini
@@ -84,9 +87,9 @@ evalStmt env (ForStmt ini exp increments body) = do
                 (Just i) -> evalExpr env i
                 (Nothing)-> evalStmt env EmptyStmt
             evalStmt env (ForStmt NoInit exp increments body)
-
+--Função
 evalStmt env (FunctionStmt (Id ini) arg body) = do
-    setVar ini (Function (Id ini) arg body)
+    setVar ini (Function (Id ini) arg body) 
 
 --    case ret of
 --        (ReturnStmt a) -> evalStmt env a      
