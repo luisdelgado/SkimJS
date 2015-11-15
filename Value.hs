@@ -1,5 +1,7 @@
 module Value (Value (..)) where
 
+import Language.ECMAScript3.Syntax(Id, Statement)
+
 data Value = Bool Bool
     | Int Int
     | String String
@@ -7,6 +9,7 @@ data Value = Bool Bool
     | Error String
     | Nil
     | Break
+    | Function Id [Id] [Statement]
     
 --
 -- Pretty Printer
@@ -21,6 +24,7 @@ instance Show Value where
   show (Error str) = "Error: " ++ str
   show Nil = ""
   show Break = "Break"
+  show (Function id arg body) = show arg
   
 -- This function could be replaced by (unwords.map show). The unwords
 -- function takes a list of String values and uses them to build a 

@@ -8,6 +8,6 @@ for (var i = 1; i < 7; i = i+1) {
 	break;
 	o = 80;
 }
-function myFunction(i) {
+function myFunction(i, x) {
 	u = 0;
 }

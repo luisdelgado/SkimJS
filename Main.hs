@@ -85,16 +85,14 @@ evalStmt env (ForStmt ini exp increments body) = do
                 (Nothing)-> evalStmt env EmptyStmt
             evalStmt env (ForStmt NoInit exp increments body)
 
-evalStmt env (FunctionStmt ini [arg] [body]) = do
-    evalFunctionId env ini
---  evalFunctionArg env [arg]
-    evalStmt env body
---    case ret of
---        (ReturnStmt a) -> evalStmt env a
+evalStmt env (FunctionStmt (Id ini) arg body) = do
+    setVar ini (Function (Id ini) arg body)
 
-evalFunctionId env (Id ini) = setVar ini Nil
---evalFunctionArg env ([Id] arg) = return arg
---evalFunctionArg env (Id arg) =        
+--evalStmt env (ExprStmt expr) = evalExpr env expr
+--  evalFunctionArg env [arg]
+--    evalStmt env body
+--    case ret of
+--        (ReturnStmt a) -> evalStmt env a      
 ------------------------------------------------------------------------------------
 ----------------------------------Break----------------------------------------------
 
