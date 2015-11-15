@@ -88,9 +88,6 @@ evalStmt env (ForStmt ini exp increments body) = do
 evalStmt env (FunctionStmt (Id ini) arg body) = do
     setVar ini (Function (Id ini) arg body)
 
---evalStmt env (ExprStmt expr) = evalExpr env expr
---  evalFunctionArg env [arg]
---    evalStmt env body
 --    case ret of
 --        (ReturnStmt a) -> evalStmt env a      
 ------------------------------------------------------------------------------------
