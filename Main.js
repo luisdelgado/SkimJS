@@ -59,3 +59,28 @@ for (var b = 0; ; b = b+1) {
 	var d = 1;
 }
 */
+
+//Programa 7 - If interno ao For e com declaração de variável automaticamente global e incremento i++ 
+/*
+var a = 5;
+for (var i = 2; i <= a; i++) {
+	if(i == 5){
+		b = 100;
+	}
+};
+if (b == 100) {
+	a = 200;
+};
+*/
+
+// Programa 8 - IF e Else com for dentro do Else, decremento i-- e declaração de váriavei automaticamente globais 
+
+var a = 3;
+if (a > 4) {
+	break;
+}else{
+	b = 1;
+	for (var i = 5; i >= b; i--) {
+		var c = i;
+	};
+}
