@@ -74,7 +74,7 @@ if (b == 100) {
 */
 
 // Programa 8 - IF e Else com for dentro do Else, decremento i-- e declaração de váriavei automaticamente globais 
-
+/*
 var a = 3;
 if (a > 4) {
 	break;
@@ -83,4 +83,14 @@ if (a > 4) {
 	for (var i = 5; i >= b; i--) {
 		var c = i;
 	};
+}
+*/
+
+//Programa 9 - Automaticamente global e declaração de função
+
+var a = 1;
+b = 1;
+
+function myfucntion (c, d) {
+
 }
