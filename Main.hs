@@ -82,11 +82,16 @@ evalStmt env (ForStmt ini exp increments body) = do
                                                 evalStmt env (ForStmt NoInit exp increments body)
                             else evalStmt env EmptyStmt
         (Nothing) -> do
-            evalStmt env body
-            case increments of
-                (Just i) -> evalExpr env i
-                (Nothing)-> evalStmt env EmptyStmt
-            evalStmt env (ForStmt NoInit exp increments body)
+            domingo <- evalStmt env body
+            case domingo of
+                (Break) -> return Nil
+                _ -> case increments of 
+                        (Just i) -> do
+                            evalExpr env i
+                            evalStmt env (ForStmt NoInit exp increments body)
+                        (Nothing) -> do
+                            evalStmt env EmptyStmt
+                            evalStmt env (ForStmt NoInit exp increments body)
 --Função
 evalStmt env (FunctionStmt (Id ini) arg body) = do
     setVar ini (Function (Id ini) arg body) 
