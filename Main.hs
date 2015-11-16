@@ -9,9 +9,6 @@ import Value
 --
 -- Evaluate functions
 --
-    
---evalExpression:: StateT -> [Expression] -> StateTransformer Value
-evalExpression env (exp:l) = evalExpr env exp
 
 evalExpr :: StateT -> Expression -> StateTransformer Value
 evalExpr env (VarRef (Id id)) = stateLookup env id
@@ -34,7 +31,6 @@ evalExpr env (AssignExpr OpAssign (LVar var) expr) = do
 --Chamando função
 evalExpr env (CallExpr exp (expr:l)) = do
     evalExpr env exp
-    evalExpr env expr >> evalExpression env l
 
 evalStmt :: StateT -> Statement -> StateTransformer Value
 evalStmt env EmptyStmt = return Nil
