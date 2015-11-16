@@ -36,12 +36,18 @@ evalExpr env (UnaryAssignExpr unOp (LVar var)) = do
         _ -> do
             b <-  postfixOp env unOp (ret)
             setVar var b
+--------------------------- dotRef -----------------------------------------
+--evalExpr env (DotRef expr (Id a)) = do 
+--    ret <- evalExpr env expr 
+--    case ret of
+--        (List []) -> return "Empty List"
+--        (List (x:xs)) -> if (a == "head") then x else return Nil
 ------------------------------------- List ---------------------------------------------
 evalExpr env (ArrayLit []) = return $ (List [])
 evalExpr env (ArrayLit l) = do
     a <- mapM (evalExpr env) l
     return $ (List a)
-
+            
 --Chamando função
 evalExpr env (CallExpr exp (expr:l)) = do
     evalExpr env exp
@@ -52,12 +58,6 @@ evalStmt env (VarDeclStmt []) = return Nil
 evalStmt env (VarDeclStmt (decl:ds)) =
     varDecl env decl >> evalStmt env (VarDeclStmt ds)
 evalStmt env (ExprStmt expr) = evalExpr env expr
----------------------------------------------------------------------------------------
------------------------------------- List ---------------------------------------------
---evalExpr env (ArrayLit []) = return $ (List [])
---evalExpr env (ArrayLit b) = do
-  --  a <- mapM (evalExpr env) b
-   -- return $ (List a)
 ---------------------------------------------------------------------------------------
 ------------------------------ If e else ---------------------------------------------
 evalStmt env (IfStmt expr ifBlock elseBlock) = do
