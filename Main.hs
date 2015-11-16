@@ -36,7 +36,11 @@ evalExpr env (UnaryAssignExpr unOp (LVar var)) = do
         _ -> do
             b <-  postfixOp env unOp (ret)
             setVar var b
-
+------------------------------------- List ---------------------------------------------
+evalExpr env (ArrayLit []) = return $ (List [])
+evalExpr env (ArrayLit l) = do
+    a <- mapM (evalExpr env) l
+    return $ (List a)
 
 --Chamando função
 evalExpr env (CallExpr exp (expr:l)) = do
