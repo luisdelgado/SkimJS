@@ -28,6 +28,16 @@ evalExpr env (AssignExpr OpAssign (LVar var) expr) = do
         _ -> do
             e <- evalExpr env expr
             setVar var e
+---------------------------- i++ and i-- -----------------------------------------------
+evalExpr env (UnaryAssignExpr unOp (LVar var)) = do
+    ret <- stateLookup env var
+    case ret of
+        (Error _) -> return $ Error $ (show var) ++ " not defined"
+        _ -> do
+            b <-  postfixOp env unOp (ret)
+            setVar var b
+
+
 --Chamando função
 evalExpr env (CallExpr exp (expr:l)) = do
     evalExpr env exp
@@ -38,7 +48,13 @@ evalStmt env (VarDeclStmt []) = return Nil
 evalStmt env (VarDeclStmt (decl:ds)) =
     varDecl env decl >> evalStmt env (VarDeclStmt ds)
 evalStmt env (ExprStmt expr) = evalExpr env expr
-
+---------------------------------------------------------------------------------------
+------------------------------------ List ---------------------------------------------
+--evalExpr env (ArrayLit []) = return $ (List [])
+--evalExpr env (ArrayLit b) = do
+  --  a <- mapM (evalExpr env) b
+   -- return $ (List a)
+---------------------------------------------------------------------------------------
 ------------------------------ If e else ---------------------------------------------
 evalStmt env (IfStmt expr ifBlock elseBlock) = do
     ret <- evalExpr env expr
@@ -154,6 +170,9 @@ infixOp env op v1 (Var x) = do
     case var of
         error@(Error _) -> return error
         val -> infixOp env op v1 val
+
+postfixOp env PostfixInc  (Int a) = return $ Int $ a + 1 
+postfixOp env PostfixDec  (Int a) = return $ Int $ a - 1
 
 --
 -- Environment and auxiliary functions
