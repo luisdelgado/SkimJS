@@ -38,16 +38,8 @@ evalStmt env (IfStmt expr ifStmt elseStmt) = do
                        else 
                             evalStmt env elseStmt
         Nil -> return val
-evalStmt env (BlockStmt stmt) = evalBlockStmt env (BlockStmt stmt) 
+evalStmt env (BlockStmt stmts) = evaluate env stmts
 
-
--- evaluate blockStmt
-evalBlockStmt :: StateT -> Statement ->StateTransformer Value
-evalBlockStmt env (BlockStmt []) = return Nil
-evalBlockStmt env (BlockStmt [a]) = evalStmt env a
-evalBlockStmt env (BlockStmt (a:as)) = do 
-    evalStmt env a
-    evalBlockStmt env (BlockStmt as)
 
 -- Do not touch this one :)
 evaluate :: StateT -> [Statement] -> StateTransformer Value
