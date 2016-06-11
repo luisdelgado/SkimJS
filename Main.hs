@@ -55,7 +55,14 @@ evalStmt env (BlockStmt stmts) = ST $ \s -> -- Cada novo blockStmt criamos um no
         (resp,ign) = g newS
         fEnv = update ign s
         in (resp,fEnv)
-
+evalStmt env (WhileStmt expr whileStmt) = do
+    val <- evalExpr env expr
+    case val of
+        (Bool bool) -> if bool then do
+                            while <- evalStmt env whileStmt
+                            case while of
+                                _ -> evalStmt env (WhileStmt expr whileStmt)
+                       else evalStmt env EmptyStmt
 
 -- Atualiza estado, dependendo das novos valores de variaveis
 -- e novas variaveis globais
